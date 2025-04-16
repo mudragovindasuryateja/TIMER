@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bold Heading</title>
+  <style>
+    body {
+      display: flex;
+      margin: 0;
+      font-family: sans-serif;
+      background-color: lightgreen;
+    }
+    .menu-wrapper {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: none;
+      border: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .menu-toggle {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+    }
+    .sidebar {
+      width: 200px;
+      background-color: #ccffcc;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      height: 100vh;
+      transition: transform 0.3s ease;
+    }
+    .sidebar.hidden {
+      transform: translateX(-220px);
+    }
+    .sidebar h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    .sidebar ul li {
+      margin: 10px 0;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .sidebar ul li input[type="text"] {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      outline: none;
+      margin-left: 8px;
+    }
+    .sidebar ul li .delete-btn {
+      display: none;
+      position: absolute;
+      right: -10px;
+      background: transparent;
+      border: none;
+      color: red;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .sidebar ul li:hover .delete-btn {
+      display: inline;
+    }
+    .add-task-btn {
+      margin-top: 15px;
+      padding: 5px 10px;
+      font-size: 14px;
+      background-color: lightcoral;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .add-task-btn:active {
+      background-color: lightblue;
+    }
+    .content {
+      flex: 1;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      font-weight: bold;
+      font-size: 100px;
+      margin-top: 50px;
+      color: lightcoral;
+      font-family: 'Agency FB', sans-serif;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .timer-container {
+      position: relative;
+      width: 200px;
+      height: 200px;
+      margin: 30px auto;
+    }
+    #progressCircle {
+      transform: rotate(-90deg);
+    }
+    #timer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 60px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .control-btn {
+      padding: 10px 20px;
+      margin: 0 10px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: lightcoral;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .control-btn:active {
+      background-color: lightblue;
+    }
+    .control-btn:hover {
+      opacity: 0.9;
+    }
+    .time-input {
+      margin-top: 10px;
+    }
+    .time-input input {
+      width: 60px;
+      padding: 5px;
+      font-size: 16px;
+      text-align: center;
+      border: 1px solid #aaa;
+      border-radius: 5px;
+    }
+    .time-input button {
+      background-color: lightyellow;
+      color: black;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .time-input button:active {
+      background-color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <div class="menu-wrapper" onclick="toggleSidebar()">
+    <button class="menu-toggle">⋮</button>
+  </div>
+
+  <div class="sidebar hidden" id="sidebar">
+    <h2>Tasks</h2>
+    <ul id="taskList">
+      <li><input type="checkbox"><input type="text" value="Task 1"><button class="delete-btn" onclick="removeTask(this)">×</button></li>
+      <li><input type="checkbox"><input type="text" value="Task 2"><button class="delete-btn" onclick="removeTask(this)">×</button></li>
+      <li><input type="checkbox"><input type="text" value="Task 3"><button class="delete-btn" onclick="removeTask(this)">×</button></li>
+    </ul>
+    <button class="add-task-btn" onclick="addTask()">+ Add Task</button>
+  </div>
+
+  <div class="content">
+    <h1>Timer</h1>
+    <div class="timer-container">
+      <svg id="progressCircle" width="200" height="200">
+        <circle cx="100" cy="100" r="90" stroke="#ccc" stroke-width="15" fill="none" />
+        <circle id="progress" cx="100" cy="100" r="90" stroke="#4caf50" stroke-width="15" fill="none" stroke-dasharray="565.48" stroke-dashoffset="0" />
+      </svg>
+      <div id="timer">25:00</div>
+    </div>
+    <div class="time-input">
+      <label for="minutes">Set Minutes: </label>
+      <input type="number" id="minutes" min="1" max="120" value="25">
+      <button onclick="setCustomTime()">Set</button>
+    </div>
+
+    <div class="button-container">
+      <button id="startPauseBtn" class="control-btn">Start</button>
+      <button id="resetBtn" class="control-btn">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    let totalTime = 25 * 60;
+    let remainingTime = totalTime;
+    let interval = null;
+    let isRunning = false;
+
+    const timerElement = document.getElementById('timer');
+    const progress = document.getElementById('progress');
+    const startPauseBtn = document.getElementById('startPauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const minutesInput = document.getElementById('minutes');
+    const fullCircle = 2 * Math.PI * 90;
+    progress.style.strokeDasharray = fullCircle;
+
+    function updateTimer() {
+      const minutes = Math.floor(remainingTime / 60);
+      const seconds = remainingTime % 60;
+      timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+      const progressValue = fullCircle * (1 - remainingTime / totalTime);
+      progress.style.strokeDashoffset = progressValue;
+
+      if (remainingTime > 0) {
+        remainingTime--;
+      } else {
+        clearInterval(interval);
+        interval = null;
+        isRunning = false;
+        startPauseBtn.textContent = 'Start';
+      }
+    }
+
+    startPauseBtn.addEventListener('click', () => {
+      if (!isRunning) {
+        interval = setInterval(updateTimer, 1000);
+        isRunning = true;
+        startPauseBtn.textContent = 'Pause';
+      } else {
+        clearInterval(interval);
+        interval = null;
+        isRunning = false;
+        startPauseBtn.textContent = 'Start';
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      clearInterval(interval);
+      interval = null;
+      remainingTime = totalTime;
+      updateTimer();
+      isRunning = false;
+      startPauseBtn.textContent = 'Start';
+    });
+
+    function setCustomTime() {
+      const customMinutes = parseInt(minutesInput.value);
+      if (!isNaN(customMinutes) && customMinutes > 0) {
+        clearInterval(interval);
+        interval = null;
+        totalTime = customMinutes * 60;
+        remainingTime = totalTime;
+        updateTimer();
+        isRunning = false;
+        startPauseBtn.textContent = 'Start';
+      }
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('hidden');
+    }
+
+    function addTask() {
+      const taskList = document.getElementById('taskList');
+      const newTask = document.createElement('li');
+      newTask.innerHTML = '<input type="checkbox"><input type="text" value="New Task"><button class="delete-btn" onclick="removeTask(this)">×</button>';
+      taskList.appendChild(newTask);
+    }
+
+    function removeTask(button) {
+      const li = button.parentElement;
+      li.remove();
+    }
+
+    updateTimer();
+  </script>
+</body>
+</html>
